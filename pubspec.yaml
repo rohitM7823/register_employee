@@ -1,0 +1,54 @@
+name: register_employee
+description: "A new Flutter project."
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_native_splash:
+  device_info_plus:
+  mobile_device_identifier: ^0.0.3
+  cupertino_icons: ^1.0.8
+  google_mlkit_face_detection: ^0.13.0
+  camera: ^0.10.5
+  path_provider: ^2.1.1
+  path: ^1.8.3
+  permission_handler: ^10.4.0
+  intl: ^0.18.1
+  flutter_secure_storage: ^8.0.0
+  shared_preferences: ^2.2.2
+  uuid: ^3.0.7
+  provider: ^6.0.5
+  http: ^0.13.5
+  tflite_flutter:
+  tflite_flutter_helper:
+  image: ^3.3.0
+  google_fonts:
+
+flutter_native_splash:
+  color: '#ede7e6'
+  image: assets/logo.png
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+
+
+
+flutter:
+
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/ml_model/mobilefacenet.tflite
