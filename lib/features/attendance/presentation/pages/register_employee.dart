@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:register_employee/data/apis.dart';
+import 'package:register_employee/features/attendance/domain/models/site_model.dart';
 
 class RegisterEmployeePage extends StatefulWidget {
-  const RegisterEmployeePage({Key? key}) : super(key: key);
+  const RegisterEmployeePage({super.key});
 
   @override
   State<RegisterEmployeePage> createState() => _RegisterEmployeePageState();
@@ -15,18 +16,37 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
   final _nameController = TextEditingController();
   final _empIdController = TextEditingController();
   final _addressController = TextEditingController();
-  final _designationController = TextEditingController();
+  final _aadharCardController = TextEditingController();
   final _salaryController = TextEditingController();
   String? _faceId;
 
   Map<String, dynamic> _employeeData = {};
 
-  String? _selectedSite;
-  final List<String> _siteOptions = [
-    'Site A',
-    'Site B',
-    'Site C'
-  ]; // Example sites
+  Site? _selectedSite;
+  List<Site> _siteOptions = [
+    Site(name: 'Site A'),
+    Site(name: 'Site B'),
+    Site(name: 'Site C')
+  ];
+
+  final TextEditingController _mobileNumberController =
+      TextEditingController(); // Example sites
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    Apis.availableSties().then(
+      (value) {
+        if (value?.isNotEmpty == true) {
+          setState(() {
+            _siteOptions = value ?? [];
+          });
+        }
+      },
+    );
+  }
 
   void _submitForm() async {
     if (_employeeData.isNotEmpty &&
@@ -43,16 +63,17 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
         "name": _nameController.text.trim(),
         "emp_id": _empIdController.text.trim(),
         "address": _addressController.text.trim(),
-        "designation": _designationController.text.trim(),
-        "salary": double.tryParse(_salaryController.text.trim()) ?? 0,
-        "site_name": _selectedSite,
+        "salary": _salaryController.text.trim(),
+        'aadhar_card': _aadharCardController.text.trim(),
+        'mobile_number': _mobileNumberController.text.trim(),
+        "site_name": _selectedSite?.name ?? '',
         "face_metadata": _faceId
       };
       _employeeData = employeeData;
       debugPrint("Submitting: $employeeData");
       await Apis.registerEmployee(employeeData).then(
         (value) {
-          if (value) {
+          if (value == true) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Employee Registered Successfully')),
             );
@@ -96,10 +117,10 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
   Widget _buildDropdown() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: DropdownButtonFormField<String>(
+      child: DropdownButtonFormField<Site>(
         value: _selectedSite,
         items: _siteOptions.map((site) {
-          return DropdownMenuItem(value: site, child: Text(site));
+          return DropdownMenuItem(value: site, child: Text(site.name ?? ''));
         }).toList(),
         onChanged: (val) {
           setState(() {
@@ -116,7 +137,7 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
           fillColor: Colors.grey[100],
         ),
         validator: (value) {
-          if (value == null || value.isEmpty) {
+          if (value == null) {
             return 'Select Site Name';
           }
           return null;
@@ -129,7 +150,8 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Employee', style: GoogleFonts.inter(fontSize: 18)),
+        title:
+            Text('Register Employee', style: GoogleFonts.inter(fontSize: 18)),
         centerTitle: true,
       ),
       body: Padding(
@@ -141,7 +163,10 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
               _buildTextField("Name", _nameController),
               _buildTextField("Employee ID", _empIdController),
               _buildTextField("Address", _addressController),
-              _buildTextField("Designation", _designationController),
+              _buildTextField("Aadhar Card", _aadharCardController,
+                  type: TextInputType.visiblePassword),
+              _buildTextField("Mobile Number", _mobileNumberController,
+                  type: TextInputType.number),
               _buildTextField("Salary", _salaryController,
                   type: TextInputType.number),
               _buildDropdown(),

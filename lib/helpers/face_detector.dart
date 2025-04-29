@@ -42,44 +42,6 @@ class FaceRecognitionService {
     return InputImage.fromBytes(bytes: bytes, metadata: metadata);
   }
 
-  Future<bool?> recognizeFace(InputImage inputImage) async {
-    final faces = await _faceDetector.processImage(inputImage);
-    if (faces.isEmpty) return null;
-
-    // Get the largest face (most prominent in the image)
-    faces.sort((a, b) => (b.boundingBox.width * b.boundingBox.height)
-        .compareTo(a.boundingBox.width * a.boundingBox.height));
-
-    final face = faces.first;
-
-    // Convert InputImage to image.Image for processing
-    final image = await _embeddingService.convertInputImageToImage(inputImage);
-
-    // Crop face from image
-    final croppedFace = img.copyCrop(
-      image,
-      face.boundingBox.left.toInt(),
-      face.boundingBox.top.toInt(),
-      face.boundingBox.width.toInt(),
-      face.boundingBox.height.toInt(),
-    );
-
-    // Get embedding for the detected face
-    final probeEmbedding =
-        await _embeddingService.getFaceEmbedding(croppedFace);
-
-    var encodedFaceEmbeddings = await apiService
-        .getFaceEmbeddings(await SecureStorage.instance.deviceIdentifier);
-    if (encodedFaceEmbeddings == null) return null;
-
-    final storedEmbedding = _parseEmbeddingString(encodedFaceEmbeddings);
-    final similarity = _embeddingService.compareEmbeddings(
-      probeEmbedding,
-      storedEmbedding,
-    );
-    log('$similarity --- $recognitionThreshold', name: 'SIMILARITY');
-    return similarity > recognitionThreshold; // No match found
-  }
 
   Future<String> registerEmployeeFace(InputImage inputImage) async {
     final faces = await _faceDetector.processImage(inputImage);

@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:register_employee/core/commons/device_details.dart';
 import 'package:register_employee/core/commons/secure_storage.dart';
+import 'package:register_employee/features/attendance/domain/models/site_model.dart';
 
 class Apis {
   static Future<bool> registerDeviceIfNot() async {
@@ -12,7 +13,7 @@ class Apis {
     try {
       final deviceDetails = await DeviceDetails.instance.currentDetails;
       final response = await http.post(
-          Uri.parse('http://192.168.0.34:8000/api/device/register'),
+          Uri.parse('http://192.168.0.5:8000/api/device/register'),
           headers: deviceDetails);
       if (response.statusCode == 200) {
         final deviceToken = json.decode(response.body)['device_token'];
@@ -32,7 +33,7 @@ class Apis {
     try {
       String? deviceToken = await SecureStorage.instance.deviceIdentifier;
       final response = await http.get(
-          Uri.parse('http://192.168.0.34:8000/api/device/status'),
+          Uri.parse('http://192.168.0.5:8000/api/device/status'),
           headers: {
             'platform': DeviceDetails.instance.platform,
             'device_token': deviceToken!,
@@ -50,30 +51,30 @@ class Apis {
     return null;
   }
 
-  static Future<bool> registerEmployee(Map<String, dynamic> data) async {
+  static Future<bool?> registerEmployee(Map<String, dynamic> data) async {
     try {
       final response =
-          await http.post(Uri.parse('http://192.168.0.34:8000/api/employee'),
+          await http.post(Uri.parse('http://192.168.0.5:8000/api/employee'),
               headers: {
                 'platform': 'web',
               },
               body: data);
-      return json.decode(response.body)['status'];
+      return json.decode(response.body)['status'] as bool?;
     } catch (ex) {
       log(ex.toString(), name: 'REGISTER_EMPLOYEE_ISSUE');
       return false;
     }
   }
 
-  Future<String?> getFaceEmbeddings(String? appIdentifier) async {
+  static Future<List<Site>?> availableSties() async {
     try {
-      final deviceDetails = await DeviceDetails.instance.currentDetails;
-      final response = await http.get(
-          Uri.parse('http://192.168.0.34:8000/api/face/embeddings'),
-          headers: deviceDetails);
-      return response.body;
+      final response = await http.get(Uri.parse('http://192.168.0.5:8000/api/sites'), headers: {
+        'platform': 'web',
+      });
+      return List.from(
+          json.decode(response.body)['sites']!.map((e) => Site.fromJson(e)));
     } catch (ex) {
-      log(ex.toString(), name: 'GET_FACE_EMBEDDINGS_ISSUE');
+      log(ex.toString(), name: 'REGISTER_EMPLOYEE_ISSUE');
       return null;
     }
   }
