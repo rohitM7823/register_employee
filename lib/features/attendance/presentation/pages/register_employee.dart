@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:register_employee/core/utils/time_utils.dart';
 import 'package:register_employee/data/apis.dart';
+import 'package:register_employee/features/attendance/domain/models/shift_model.dart';
 import 'package:register_employee/features/attendance/domain/models/site_model.dart';
 
 class RegisterEmployeePage extends StatefulWidget {
@@ -17,17 +19,22 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
   final _empIdController = TextEditingController();
   final _addressController = TextEditingController();
   final _aadharCardController = TextEditingController();
-  final _salaryController = TextEditingController();
+  final _accountNumberController = TextEditingController();
   String? _faceId;
 
   Map<String, dynamic> _employeeData = {};
 
   Site? _selectedSite;
+  Shift? _selectedShift;
+
+  List<Shift> _shiftOptions = [];
   List<Site> _siteOptions = [
     Site(name: 'Site A'),
     Site(name: 'Site B'),
     Site(name: 'Site C')
   ];
+
+  bool _registerEmployee = false;
 
   final TextEditingController _mobileNumberController =
       TextEditingController(); // Example sites
@@ -42,6 +49,16 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
         if (value?.isNotEmpty == true) {
           setState(() {
             _siteOptions = value ?? [];
+          });
+        }
+      },
+    );
+
+    Apis.shifts().then(
+      (value) {
+        if (value?.isNotEmpty == true) {
+          setState(() {
+            _shiftOptions = value ?? [];
           });
         }
       },
@@ -63,19 +80,56 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
         "name": _nameController.text.trim(),
         "emp_id": _empIdController.text.trim(),
         "address": _addressController.text.trim(),
-        "salary": _salaryController.text.trim(),
+        "account_number": _accountNumberController.text.trim(),
         'aadhar_card': _aadharCardController.text.trim(),
         'mobile_number': _mobileNumberController.text.trim(),
         "site_name": _selectedSite?.name ?? '',
-        "face_metadata": _faceId
+        "face_metadata": _faceId,
+        "shift_id": _selectedShift?.id ?? '',
       };
       _employeeData = employeeData;
       debugPrint("Submitting: $employeeData");
+      setState(() {
+        _registerEmployee = true;
+      });
       await Apis.registerEmployee(employeeData).then(
         (value) {
+          setState(() {
+            _registerEmployee = false;
+          });
           if (value == true) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Employee Registered Successfully')),
+            setState(() {
+              _faceId = null;
+            });
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                title: const Text(
+                  "Success",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                content: Text(
+                  "Employee ${_nameController.text} registered successfully",
+                  style: TextStyle(fontSize: 16),
+                ),
+                actionsPadding: const EdgeInsets.only(right: 8, bottom: 8),
+                actions: [
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text("OK"),
+                  ),
+                ],
+              ),
             );
           }
         },
@@ -128,7 +182,41 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
           });
         },
         decoration: InputDecoration(
-          labelText: "Site Name",
+          labelText: "Select Site",
+          labelStyle: GoogleFonts.inter(fontSize: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          filled: true,
+          fillColor: Colors.grey[100],
+        ),
+        validator: (value) {
+          if (value == null) {
+            return 'Select Site';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildDropdownForShift() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: DropdownButtonFormField<Shift>(
+        value: _selectedShift,
+        items: _shiftOptions.map((site) {
+          return DropdownMenuItem(
+              value: site,
+              child: Text(site.clockIn?.toTimeOfDay.format(context) ?? ''));
+        }).toList(),
+        onChanged: (val) {
+          setState(() {
+            _selectedShift = val;
+          });
+        },
+        decoration: InputDecoration(
+          labelText: "Select Shift",
           labelStyle: GoogleFonts.inter(fontSize: 14),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
@@ -158,20 +246,29 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
             children: [
-              _buildTextField("Name", _nameController),
-              _buildTextField("Employee ID", _empIdController),
-              _buildTextField("Address", _addressController),
-              _buildTextField("Aadhar Card", _aadharCardController,
-                  type: TextInputType.visiblePassword),
-              _buildTextField("Mobile Number", _mobileNumberController,
-                  type: TextInputType.number),
-              _buildTextField("Salary", _salaryController,
-                  type: TextInputType.number),
-              _buildDropdown(),
+              Flexible(child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _buildTextField("Name", _nameController),
+                    _buildTextField("Employee ID", _empIdController),
+                    _buildTextField("Address", _addressController),
+                    _buildTextField("Aadhar Card", _aadharCardController,
+                        type: TextInputType.visiblePassword),
+                    _buildTextField("Mobile Number", _mobileNumberController,
+                        type: TextInputType.number),
+                    _buildTextField("Account Number", _accountNumberController,
+                        type: TextInputType.visiblePassword),
+                    _buildDropdown(),
+                    _buildDropdownForShift()
+                  ],
+                ),
+              )),
+              const SizedBox(height: 10),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
+                  fixedSize: Size(MediaQuery.of(context).size.width, 45),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   backgroundColor:
                       _faceId != null ? Colors.green : Colors.deepPurpleAccent,
@@ -183,15 +280,16 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
                     style: GoogleFonts.inter(
                         color: Colors.white, fontWeight: FontWeight.w600)),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
+                  fixedSize: Size(MediaQuery.of(context).size.width, 45),
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  backgroundColor: Colors.black,
+                  backgroundColor: _registerEmployee ? Colors.white38 : Colors.black,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16)),
                 ),
-                onPressed: _submitForm,
+                onPressed: _registerEmployee ? null : _submitForm,
                 child: Text('Submit',
                     style: GoogleFonts.inter(
                         color: Colors.white, fontWeight: FontWeight.w600)),
