@@ -13,6 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+  get_storage:
   flutter_native_splash:
   device_info_plus:
   mobile_device_identifier: ^0.0.3
