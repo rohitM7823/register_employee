@@ -1,11 +1,10 @@
 import 'dart:developer';
 
-
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:register_employee/core/commons/device_details.dart';
-import 'package:register_employee/data/apis.dart';
+import 'package:register_employee/helpers/storage_helper.dart';
 import 'package:register_employee/routes/app_router.dart';
 
 List<CameraDescription> cameraDescriptions = [];
@@ -23,15 +22,12 @@ void main() async {
 
 Future<void> initialization() async {
   try {
+    await StorageHelper.init();
     cameraDescriptions = await availableCameras();
     await DeviceDetails.instance.init();
-    var isRegistered = await Apis.registerDeviceIfNot();
-    bool? isApproved;
-    if (isRegistered) {
-      isApproved = await Apis.isDeviceApproved();
-    }
-
-    initialRoute = isRegistered && isApproved == true ? '/' : '/not_registered';
+    final prefs = StorageHelper();
+    String? token = await prefs.getAdminToken();
+    initialRoute = token?.isNotEmpty == true ? registerEmployee : login;
   } catch (Ex) {
     log(Ex.toString(), name: 'INITIALIZATION');
   }

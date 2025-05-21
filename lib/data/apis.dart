@@ -10,7 +10,50 @@ import '../features/attendance/domain/models/shift_model.dart';
 
 class Apis {
   
-  static const BASE_URL = 'https://gsa.ezonedigital.com/api';
+  static const BASE_URL = 'http://192.168.0.5:8000/api';
+
+  static Future<String?> login(String userId, String password) async {
+    try {
+      final response = await http.post(Uri.parse('$BASE_URL/admin/login'),
+          body: {'admin_id': userId, 'password': password});
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body)['token'] as String?;
+      }
+      return null;
+    } catch (ex) {
+      rethrow;
+    }
+  }
+
+  static Future<bool> logout(String token) async {
+    try {
+      final response = await http.post(Uri.parse('$BASE_URL/admin/logout'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token'
+          });
+      log('${response.statusCode}', name: 'LOGOUT');
+      return response.statusCode == 200;
+    } catch (ex) {
+      rethrow;
+    }
+  }
+
+  static Future<bool> forgotPassword(String adminId, String newPassword) async {
+    try {
+      final response =
+      await http.post(Uri.parse('$BASE_URL/admin/forgot-password'), body: {
+        'admin_id': adminId,
+        'new_password': newPassword
+      });
+
+      log(response.body.toString(), name: 'FORGOT_PASSWORD');
+      return response.statusCode == 200;
+    } catch (ex) {
+      rethrow;
+    }
+  }
   
   static Future<bool> registerDeviceIfNot() async {
     if (await SecureStorage.instance.deviceIdentifier != null) return true;

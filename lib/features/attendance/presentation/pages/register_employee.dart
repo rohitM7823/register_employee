@@ -4,6 +4,8 @@ import 'package:register_employee/core/utils/time_utils.dart';
 import 'package:register_employee/data/apis.dart';
 import 'package:register_employee/features/attendance/domain/models/shift_model.dart';
 import 'package:register_employee/features/attendance/domain/models/site_model.dart';
+import 'package:register_employee/helpers/storage_helper.dart';
+import 'package:register_employee/routes/app_router.dart';
 
 class RegisterEmployeePage extends StatefulWidget {
   const RegisterEmployeePage({super.key});
@@ -29,9 +31,9 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
 
   List<Shift> _shiftOptions = [];
   List<Site> _siteOptions = [
-    Site(name: 'Site A'),
-    Site(name: 'Site B'),
-    Site(name: 'Site C')
+    // Site(name: 'Site A'),
+    // Site(name: 'Site B'),
+    // Site(name: 'Site C')
   ];
 
   bool _registerEmployee = false;
@@ -241,6 +243,32 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
         title:
             Text('Register Employee', style: GoogleFonts.inter(fontSize: 18)),
         centerTitle: true,
+        actions: [
+          Container(
+            padding: EdgeInsets.all(8),
+            margin: EdgeInsets.all(8).copyWith(right: 8),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: loading ? Colors.grey.shade300 : Colors.redAccent),
+            child: InkWell(
+              onTap: loading ? null : _logout,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.output_outlined,
+                    color: Colors.white,
+                  ),
+                  Text(
+                    " Logout",
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  )
+                ],
+              ),
+            ),
+          )
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -248,7 +276,8 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
           key: _formKey,
           child: Column(
             children: [
-              Flexible(child: SingleChildScrollView(
+              Flexible(
+                  child: SingleChildScrollView(
                 child: Column(
                   children: [
                     _buildTextField("Name", _nameController),
@@ -285,7 +314,8 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
                 style: ElevatedButton.styleFrom(
                   fixedSize: Size(MediaQuery.of(context).size.width, 45),
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  backgroundColor: _registerEmployee ? Colors.white38 : Colors.black,
+                  backgroundColor:
+                      _registerEmployee ? Colors.white38 : Colors.black,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16)),
                 ),
@@ -309,5 +339,42 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
         _faceId = result as String?;
       });
     }
+  }
+
+  bool loading = false;
+
+  void _logout() async {
+    setState(() {
+      loading = true;
+    });
+    final key = await StorageHelper().getAdminToken();
+    if (key?.isNotEmpty == true) {
+      await Apis.logout(key!).then(
+        (value) async {
+          if (value) {
+            setState(() {
+              loading = false;
+            });
+            await StorageHelper().clearToken();
+            _showSnackbar('Logout successful');
+            Navigator.pushNamedAndRemoveUntil(context, login, (route) => false);
+          }
+        },
+      ).catchError((error) {
+        setState(() {
+          loading = false;
+        });
+        _showSnackbar(error.toString(), error: false);
+      });
+    }
+  }
+
+  void _showSnackbar(String message, {bool error = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: error ? Colors.red : Colors.green,
+      ),
+    );
   }
 }
