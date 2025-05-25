@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:register_employee/core/utils/time_utils.dart';
 import 'package:register_employee/data/apis.dart';
+import 'package:register_employee/features/attendance/domain/models/department.dart';
 import 'package:register_employee/features/attendance/domain/models/shift_model.dart';
 import 'package:register_employee/features/attendance/domain/models/site_model.dart';
 import 'package:register_employee/helpers/storage_helper.dart';
@@ -28,7 +29,9 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
 
   Site? _selectedSite;
   Shift? _selectedShift;
+  Department? _selectedDepartment;
 
+  List<Department> _departments = [];
   List<Shift> _shiftOptions = [];
   List<Site> _siteOptions = [
     // Site(name: 'Site A'),
@@ -65,6 +68,16 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
         }
       },
     );
+
+    Apis.departments().then(
+      (value) {
+        if (value.isNotEmpty) {
+          setState(() {
+            _departments = value;
+          });
+        }
+      },
+    );
   }
 
   void _submitForm() async {
@@ -88,6 +101,7 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
         "site_name": _selectedSite?.name ?? '',
         "face_metadata": _faceId,
         "shift_id": _selectedShift?.id ?? '',
+        'department_id': _selectedDepartment?.id ?? ''
       };
       _employeeData = employeeData;
       debugPrint("Submitting: $employeeData");
@@ -102,6 +116,15 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
           if (value == true) {
             setState(() {
               _faceId = null;
+              _nameController.clear();
+              _empIdController.clear();
+              _addressController.clear();
+              _aadharCardController.clear();
+              _accountNumberController.clear();
+              _mobileNumberController.clear();
+              _selectedSite = null;
+              _selectedShift = null;
+              _selectedDepartment = null;
             });
             showDialog(
               context: context,
@@ -236,6 +259,39 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
     );
   }
 
+  Widget _buildDropdownForDepartment() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: DropdownButtonFormField<Department>(
+        value: _selectedDepartment,
+        items: _departments.map((department) {
+          return DropdownMenuItem(
+              value: department, child: Text(department.name ?? ''));
+        }).toList(),
+        onChanged: (val) {
+          setState(() {
+            _selectedDepartment = val;
+          });
+        },
+        decoration: InputDecoration(
+          labelText: "Select Department",
+          labelStyle: GoogleFonts.inter(fontSize: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          filled: true,
+          fillColor: Colors.grey[100],
+        ),
+        validator: (value) {
+          if (value == null) {
+            return 'Select Department';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -290,7 +346,8 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
                     _buildTextField("Account Number", _accountNumberController,
                         type: TextInputType.visiblePassword),
                     _buildDropdown(),
-                    _buildDropdownForShift()
+                    _buildDropdownForShift(),
+                    _buildDropdownForDepartment()
                   ],
                 ),
               )),

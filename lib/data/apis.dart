@@ -4,13 +4,13 @@ import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:register_employee/core/commons/device_details.dart';
 import 'package:register_employee/core/commons/secure_storage.dart';
+import 'package:register_employee/features/attendance/domain/models/department.dart';
 import 'package:register_employee/features/attendance/domain/models/site_model.dart';
 
 import '../features/attendance/domain/models/shift_model.dart';
 
 class Apis {
-  
-  static const BASE_URL = 'http://192.168.0.5:8000/api';
+  static const BASE_URL = 'https://gsa.ezonedigital.com/api'; //'http://192.168.0.2:8000/api';
 
   static Future<String?> login(String userId, String password) async {
     try {
@@ -42,11 +42,9 @@ class Apis {
 
   static Future<bool> forgotPassword(String adminId, String newPassword) async {
     try {
-      final response =
-      await http.post(Uri.parse('$BASE_URL/admin/forgot-password'), body: {
-        'admin_id': adminId,
-        'new_password': newPassword
-      });
+      final response = await http.post(
+          Uri.parse('$BASE_URL/admin/forgot-password'),
+          body: {'admin_id': adminId, 'new_password': newPassword});
 
       log(response.body.toString(), name: 'FORGOT_PASSWORD');
       return response.statusCode == 200;
@@ -54,14 +52,13 @@ class Apis {
       rethrow;
     }
   }
-  
+
   static Future<bool> registerDeviceIfNot() async {
     if (await SecureStorage.instance.deviceIdentifier != null) return true;
 
     try {
       final deviceDetails = await DeviceDetails.instance.currentDetails;
-      final response = await http.post(
-          Uri.parse('$BASE_URL/device/register'),
+      final response = await http.post(Uri.parse('$BASE_URL/device/register'),
           headers: deviceDetails);
       log('${response.body}', name: 'REGISTER_DEVICE');
       if (response.statusCode == 200) {
@@ -82,12 +79,11 @@ class Apis {
   static Future<bool?> isDeviceApproved() async {
     try {
       String? deviceToken = await SecureStorage.instance.deviceIdentifier;
-      final response = await http.get(
-          Uri.parse('$BASE_URL/device/status'),
-          headers: {
-            'platform': DeviceDetails.instance.platform,
-            'device_token': deviceToken!,
-          });
+      final response =
+          await http.get(Uri.parse('$BASE_URL/device/status'), headers: {
+        'platform': DeviceDetails.instance.platform,
+        'device_token': deviceToken!,
+      });
       if (response.statusCode == 200) {
         String? deviceStatus = json.decode(response.body)['status'];
         if (deviceStatus == null) return null;
@@ -103,13 +99,10 @@ class Apis {
 
   static Future<bool?> registerEmployee(Map<String, dynamic> data) async {
     try {
-      final response =
-          await http.post(Uri.parse('$BASE_URL/employee'),
-              headers: {
-                'platform': 'web',
-                'Content-Type': 'application/json'
-              },
-              body: jsonEncode(data));
+      final response = await http.post(Uri.parse('$BASE_URL/employee'),
+          headers: {'platform': 'web', 'Content-Type': 'application/json'},
+          body: jsonEncode(data));
+      log(response.body, name: 'REGISTER_EMPLOYEE');
       return json.decode(response.body)['status'] as bool?;
     } catch (ex) {
       log(ex.toString(), name: 'REGISTER_EMPLOYEE_ISSUE_OR');
@@ -144,6 +137,21 @@ class Apis {
     } catch (ex) {
       log(ex.toString(), name: 'SHIFTS_ISSUE');
       return null;
+    }
+  }
+
+  static Future<List<Department>> departments() async {
+    try {
+      final response = await http.get(Uri.parse('$BASE_URL/departments'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body)['departments']
+            .map<Department>((e) => Department.fromJson(e))
+            .toList();
+      }
+      return [];
+    } catch (ex) {
+      log(ex.toString(), name: 'DEPARTMENTS_ISSUE');
+      return [];
     }
   }
 }
