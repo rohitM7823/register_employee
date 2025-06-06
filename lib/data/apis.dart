@@ -10,7 +10,8 @@ import 'package:register_employee/features/attendance/domain/models/site_model.d
 import '../features/attendance/domain/models/shift_model.dart';
 
 class Apis {
-  static const BASE_URL = 'https://gsa.ezonedigital.com/api'; //'http://192.168.0.2:8000/api';
+  static const BASE_URL = 'https://gsa.ezonedigital.com/api';
+  //static const BASE_URL = 'http://192.168.0.6:8000/api';
 
   static Future<String?> login(String userId, String password) async {
     try {

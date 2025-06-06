@@ -44,7 +44,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           await prefs.setAdminToken(value!);
           log('${await prefs.getAdminToken()}', name: 'LOGIN');
           _showSnackbar("Login successful");
-          Navigator.pushReplacementNamed(context, registerEmployee);
+          Navigator.pushNamedAndRemoveUntil(context,  registerEmployee, (route) => false);
         } else {
           _showSnackbar("Invalid credentials", error: true);
         }
