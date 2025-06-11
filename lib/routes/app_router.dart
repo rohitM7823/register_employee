@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:register_employee/features/attendance/presentation/pages/admin_login.dart';
-import 'package:register_employee/features/attendance/presentation/pages/device_not_registered.dart';
+import 'package:register_employee/features/attendance/presentation/pages/entry_screen.dart';
 import 'package:register_employee/features/attendance/presentation/pages/recognition_employee.dart';
 import 'package:register_employee/features/attendance/presentation/pages/register_employee.dart';
 import 'package:register_employee/main.dart';
@@ -25,6 +25,6 @@ Route<dynamic> generateRoute(RouteSettings settings) {
         builder: (context) => const AdminLoginScreen(),
       );
     default:
-      return MaterialPageRoute(builder: (_) => const RegisterEmployeePage());
+      return MaterialPageRoute(builder: (_) => const EntryScreen());
   }
 }

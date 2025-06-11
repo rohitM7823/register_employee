@@ -8,16 +8,13 @@ import 'package:register_employee/helpers/storage_helper.dart';
 import 'package:register_employee/routes/app_router.dart';
 
 List<CameraDescription> cameraDescriptions = [];
-String initialRoute = '/';
 
 void main() async {
   final binding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: binding);
   await initialization();
   FlutterNativeSplash.remove();
-  runApp(MyApp(
-    initialRoute: initialRoute,
-  ));
+  runApp(const MyApp());
 }
 
 Future<void> initialization() async {
@@ -25,18 +22,15 @@ Future<void> initialization() async {
     await StorageHelper.init();
     cameraDescriptions = await availableCameras();
     await DeviceDetails.instance.init();
-    final prefs = StorageHelper();
-    String? token = await prefs.getAdminToken();
-    initialRoute = token?.isNotEmpty == true ? registerEmployee : login;
   } catch (Ex) {
     log(Ex.toString(), name: 'INITIALIZATION');
   }
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key, required this.initialRoute});
+  const MyApp({super.key, this.initialRoute});
 
-  final String initialRoute;
+  final String? initialRoute;
 
   @override
   State<MyApp> createState() => _MyAppState();
