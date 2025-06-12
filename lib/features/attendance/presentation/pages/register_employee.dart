@@ -326,62 +326,64 @@ class _RegisterEmployeePageState extends State<RegisterEmployeePage> {
           )
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              Flexible(
-                  child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _buildTextField("Name", _nameController),
-                    _buildTextField("Employee ID", _empIdController),
-                    _buildTextField("Address", _addressController),
-                    _buildTextField("Aadhar Card", _aadharCardController,
-                        type: TextInputType.visiblePassword),
-                    _buildTextField("Mobile Number", _mobileNumberController,
-                        type: TextInputType.number),
-                    _buildTextField("Account Number", _accountNumberController,
-                        type: TextInputType.visiblePassword),
-                    _buildDropdown(),
-                    _buildDropdownForShift(),
-                    _buildDropdownForDepartment()
-                  ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                Flexible(
+                    child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      _buildTextField("Name", _nameController),
+                      _buildTextField("Employee ID", _empIdController),
+                      _buildTextField("Address", _addressController),
+                      _buildTextField("Aadhar Card", _aadharCardController,
+                          type: TextInputType.visiblePassword),
+                      _buildTextField("Mobile Number", _mobileNumberController,
+                          type: TextInputType.number),
+                      _buildTextField("Account Number", _accountNumberController,
+                          type: TextInputType.visiblePassword),
+                      _buildDropdown(),
+                      _buildDropdownForShift(),
+                      _buildDropdownForDepartment()
+                    ],
+                  ),
+                )),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    fixedSize: Size(MediaQuery.of(context).size.width, 45),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor:
+                        _faceId != null ? Colors.green : Colors.deepPurpleAccent,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                  ),
+                  onPressed: _navigateToFaceIdPage,
+                  child: Text(_faceId != null ? 'Face ID Given' : 'Give Face ID',
+                      style: GoogleFonts.inter(
+                          color: Colors.white, fontWeight: FontWeight.w600)),
                 ),
-              )),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  fixedSize: Size(MediaQuery.of(context).size.width, 45),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  backgroundColor:
-                      _faceId != null ? Colors.green : Colors.deepPurpleAccent,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    fixedSize: Size(MediaQuery.of(context).size.width, 45),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor:
+                        _registerEmployee ? Colors.white38 : Colors.black,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                  ),
+                  onPressed: _registerEmployee ? null : _submitForm,
+                  child: Text('Submit',
+                      style: GoogleFonts.inter(
+                          color: Colors.white, fontWeight: FontWeight.w600)),
                 ),
-                onPressed: _navigateToFaceIdPage,
-                child: Text(_faceId != null ? 'Face ID Given' : 'Give Face ID',
-                    style: GoogleFonts.inter(
-                        color: Colors.white, fontWeight: FontWeight.w600)),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  fixedSize: Size(MediaQuery.of(context).size.width, 45),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  backgroundColor:
-                      _registerEmployee ? Colors.white38 : Colors.black,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                ),
-                onPressed: _registerEmployee ? null : _submitForm,
-                child: Text('Submit',
-                    style: GoogleFonts.inter(
-                        color: Colors.white, fontWeight: FontWeight.w600)),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
